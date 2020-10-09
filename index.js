@@ -1,42 +1,127 @@
 const core = require("@actions/core");
 const github = require("@actions/github");
-const https = require("https");
+const { octokit } = require("./github.js");
+const fetch = require('node-fetch');
 
-try {
-  let title = core.getInput("job-status") === "success" ? "SUCCESS" : "FAILURE";
-  let color = core.getInput("job-status") === "success" ? "#00FF00" : "#FF0000";
+const getPullRequest = async (password, repo, pull_number) => {
+  const github = octokit(password);
+  
+  const pr = await github.getPR(repo, pull_number);
 
-  const postData = JSON.stringify({
-    channel: `${core.getInput("channel")}`,
-    attachments: [
-      {
-        title: title + ` : [ ${github.context.repo.repo} ] : [ ${github.context.eventName} ]`,
-        text: `https://github.com/${github.context.actor}/${github.context.repo.repo}/actions/runs/${github.context.runId}`,
-        author_name: github.context.actor,
-        color: color,
-      },
-    ],
-  });
-
-  let options = {
-    hostname: "slack.com",
-    port: 443,
-    path: "/api/chat.postMessage",
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Content-Length": postData.length,
-      Authorization: `Bearer ${core.getInput("slack-bot-token")}`,
-      Accept: "application/json",
-    },
-  };
-
-  let req = https.request(options, (res) => {
-    res.setEncoding("utf8");
-  });
-
-  req.write(postData);
-  req.end();
-} catch (error) {
-  core.setFailed(error.message);
+  return pr;
 }
+
+async function main() {
+  try {
+    const status = core.getInput("job-status");
+    let state = status === "success" ? "SUCCESS" : status === "failure" ? "FAILURE" : "CANCELLED";
+    let color = status === "success" ? "#2e993e" : status === "failure" ? "#bd0f26" : "#d29d0c";
+    
+    let branch = github.context.ref.split("/").splice(-1)[0];
+    let runDetails = `Run details: <https://github.com/trabe/${github.context.repo.repo}/actions/runs/${github.context.runId} | ${github.context.runId} run details> \n`;
+    let workflow = github.context.workflow.split("/").splice(-1)[0].replace(".yml", "");
+    let eventInfo = core.getInput("event");
+
+    let content;
+    switch (github.context.eventName) {
+      case "push":
+        if (github.context.ref.includes("tags")) {
+          content = `New tag: *${github.context.ref.split("/").splice(-1)[0]}*`;
+        }
+        else {
+          content = `Push on *${branch}*. \n Commit: ${JSON.parse(eventInfo).head_commit.url}`; 
+        }
+        break;
+      case "pull_request":
+        let pr = await getPullRequest(core.getInput("repo-token"),github.context.repo.repo, github.context.payload.pull_request.number);
+        content = `Pull Request #${github.context.payload.pull_request.number}: ${pr.title} \n *${core.getInput("head_ref")}* -> *${core.getInput("base_ref")}* \n ${github.context.payload.pull_request.html_url}`;
+        break;
+      case "workflow_dispatch":
+        content = `Manual trigger`;
+        break;
+      default:
+        content = `On *${branch}* branch \n Commit: ${JSON.parse(eventInfo).head_commit.url}`;
+    };
+    
+    const postData = JSON.stringify({
+      channel: `${core.getInput("channel")}`,
+      attachments: [
+        {
+          color: color,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `Github Action *${workflow}*: *${state}*`
+              }
+            },    
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `${runDetails}${content}`
+              }
+            },
+            {
+              type: "context",
+              elements: [
+                {
+                  type: "image",
+                  image_url: `https://github.com/${github.context.actor}.png`,
+                  alt_text: "images"
+                },
+                {
+                  type: "mrkdwn",
+                  text: `*Author:* ${github.context.actor}`
+                }
+              ]
+            },
+            {
+              type: "context",
+              elements: [
+                {
+                  type: "image",
+                  image_url: "https://avatars0.githubusercontent.com/u/9919?s=280&v=4",
+                  alt_text: "images"
+                },
+                {
+                  type: "mrkdwn",
+                  text: `<https://github.com/trabe/${github.context.repo.repo}| trabe/${github.context.repo.repo}>`
+                }
+              ]
+            }
+          ],
+        },
+      ],
+    });
+
+    fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      body: postData,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Length": postData.length,
+        Authorization: `Bearer ${core.getInput("slack-bot-token")}`,
+        Accept: "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Server error ${status}`);
+        }
+
+        return res.json();
+      })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Slack error ${res.error}`);
+        }
+      });
+
+  } catch (error) {
+    core.setFailed(error.message);
+  }
+}
+
+main();

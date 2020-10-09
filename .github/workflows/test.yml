@@ -1,4 +1,4 @@
-on: [push, pull_request]
+on: [push, pull_request, deployment]
 
 jobs:
   test_notify:
@@ -8,8 +8,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Action
-        uses: ./
+        uses: ./ 
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          event: ${{ toJson(github.event) }}
+          head_ref: ${{ github.head_ref }}
+          base_ref: ${{ github.base_ref }}
           job-status: ${{ job.status }}
           slack-bot-token: ${{ secrets.AHO_SLACK_TOKEN }}
           channel: trabenet-notifications

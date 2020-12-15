@@ -108,7 +108,7 @@ async function main() {
     })
       .then((res) => {
         if (!res.ok) {
-          throw new Error(`Server error ${status}`);
+          throw new Error(`Server error ${res.status}`);
         }
 
         return res.json();

@@ -1,14 +1,37 @@
 on: [push, pull_request, deployment]
 
 jobs:
-  test_notify:
+  test_ok:
     runs-on: ubuntu-latest
-    name: Test the action
+    name: Test the action on success
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Success
+        run: exit 0
       - name: Action
-        uses: ./ 
+        uses: ./
+        if: always()
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          event: ${{ toJson(github.event) }}
+          head_ref: ${{ github.head_ref }}
+          base_ref: ${{ github.base_ref }}
+          job-status: ${{ job.status }}
+          slack-bot-token: ${{ secrets.AHO_SLACK_TOKEN }}
+          channel: trabenet-notifications
+
+  test_ko:
+    runs-on: ubuntu-latest
+    name: Test the action on failure
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Success
+        run: exit 1
+      - name: Action
+        uses: ./
+        if: always()
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           event: ${{ toJson(github.event) }}

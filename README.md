@@ -20,6 +20,7 @@ This action send a message to a specific Slack channel.
 - name: Some action
   uses: trabe/github-actions-slack-job-status@v1
   id: post-to-slack
+  if: always()
   with:
     repo-token: ${{ secrets.GITHUB_TOKEN }}
     event: ${{ toJson(github.event) }}

@@ -11,7 +11,7 @@ const getPullRequest = async (password, repo, pull_number) => {
   return pr;
 }
 
-async function main() {
+(async () => {
   try {
     const status = core.getInput("job-status");
     let state = status === "success" ? "SUCCESS" : status === "failure" ? "FAILURE" : "CANCELLED";
@@ -96,7 +96,7 @@ async function main() {
       ],
     });
 
-    fetch("https://slack.com/api/chat.postMessage", {
+    const res = await fetch("https://slack.com/api/chat.postMessage", {
       method: "POST",
       body: postData,
       headers: {
@@ -106,22 +106,10 @@ async function main() {
         Accept: "application/json",
       },
     })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Server error ${res.status}`);
-        }
-
-        return res.json();
-      })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Slack error ${res.error}`);
-        }
-      });
-
+    if (!res.ok) {
+      throw new Error(`Server error ${res.status}`);
+    }
   } catch (error) {
     core.setFailed(error.message);
   }
-}
-
-main();
+})()

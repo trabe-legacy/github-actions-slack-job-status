@@ -1,29 +1,9 @@
-const { Octokit } = require("@octokit/rest");
-const { version } = require("./package.json");
+const github = require("@actions/github");
 
 const org = "Trabe";
 
 const octokit = (token) => {
-  const client = new Octokit({
-    auth: token,
-    userAgent: `Trabenet ${version}`,
-
-    timeZone: "Europe/Madrid",
-
-    baseUrl: "https://api.github.com",
-
-    log: {
-      debug: (msg) => console.debug(msg),
-      info: () => {},
-      warn: (warn) => console.warn(warn),
-      error: (error) => console.warn(error),
-    },
-    request: {
-      agent: undefined,
-      fetch: undefined,
-      timeout: 50000,
-    },
-  });
+  const client = github.getOctokit(token);
 
   async function getPR(repo, pull_number) {
     const object = await client.pulls.get({

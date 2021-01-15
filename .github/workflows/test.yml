@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Success
+      - name: Failure
         run: exit 1
       - name: Action
         uses: ./

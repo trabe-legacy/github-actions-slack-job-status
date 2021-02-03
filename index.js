@@ -21,6 +21,7 @@ const getPullRequest = async (password, repo, pull_number) => {
     let runDetails = `Run details: <https://github.com/trabe/${github.context.repo.repo}/actions/runs/${github.context.runId} | ${github.context.runId} run details> \n`;
     let workflow = github.context.workflow.split("/").splice(-1)[0].replace(".yml", "");
     let eventInfo = core.getInput("event");
+    const jobName = github.context.job;
 
     let content;
     switch (github.context.eventName) {
@@ -53,7 +54,7 @@ const getPullRequest = async (password, repo, pull_number) => {
               type: "section",
               text: {
                 type: "mrkdwn",
-                text: `Github Action *${workflow}*: *${state}*`
+                text: `Github Action *${workflow}*:*${jobName}* *${state}*`
               }
             },    
             {

@@ -28,7 +28,7 @@ const getPullRequest = async (password, repo, pull_number) => {
         : "#d29d0c";
 
     let branch = github.context.ref.split("/").splice(-1)[0];
-    let runDetails = `Run details: <https://github.com/${github.context.repo.repository_owner}/${github.context.repo.repo}/actions/runs/${github.context.runId} | ${github.context.runId} run details> \n`;
+    let runDetails = `Run details: <https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId} | ${github.context.runId} run details> \n`;
     let workflow = github.context.workflow
       .split("/")
       .splice(-1)[0]
@@ -92,7 +92,7 @@ const getPullRequest = async (password, repo, pull_number) => {
                 },
                 {
                   type: "mrkdwn",
-                  text: `<https://github.com/${github.context.repo.repository_owner}/${github.context.repo.repo}| ${github.context.repo.repository_owner}/${github.context.repo.repo}>`,
+                  text: `<https://github.com/${github.context.repo.owner}/${github.context.repo.repo}| ${github.context.repo.owner}/${github.context.repo.repo}>`,
                 },
               ],
             },

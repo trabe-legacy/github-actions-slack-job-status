@@ -82,6 +82,21 @@ const getPullRequest = async (password, repo, pull_number) => {
               },
             },
             {
+              type: "context",
+              elements: [
+                {
+                  type: "image",
+                  image_url:
+                    "https://avatars0.githubusercontent.com/u/9919?s=280&v=4",
+                  alt_text: "images",
+                },
+                {
+                  type: "mrkdwn",
+                  text: `<https://github.com/${github.context.repo.repository_owner}/${github.context.repo.repo}| ${github.context.repo.repository_owner}/${github.context.repo.repo}>`,
+                },
+              ],
+            },
+            {
               type: "section",
               text: {
                 type: "mrkdwn",
@@ -99,21 +114,6 @@ const getPullRequest = async (password, repo, pull_number) => {
                 {
                   type: "mrkdwn",
                   text: `*Author:* ${github.context.actor}`,
-                },
-              ],
-            },
-            {
-              type: "context",
-              elements: [
-                {
-                  type: "image",
-                  image_url:
-                    "https://avatars0.githubusercontent.com/u/9919?s=280&v=4",
-                  alt_text: "images",
-                },
-                {
-                  type: "mrkdwn",
-                  text: `<https://github.com/${github.context.repo.repository_owner}/${github.context.repo.repo}| ${github.context.repo.repository_owner}/${github.context.repo.repo}>`,
                 },
               ],
             },

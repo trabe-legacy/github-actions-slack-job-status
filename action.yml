@@ -16,5 +16,5 @@ inputs:
   channel:
     description: 'Channel where the messages are sended'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'index.js'
